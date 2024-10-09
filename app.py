@@ -177,8 +177,8 @@ if st.button('Predict'):
         
     # Hiển thị kết quả dự đoán từ các model
     st.subheader('Prediction Results:')
-    st.write(f'Linear Model Prediction: {linear_pred[0]}')
-    st.write(f'Ridge Model Prediction: {ridge_pred[0]}')
-    st.write(f'MLP Model Prediction: {mlp_pred[0]}')
-    st.write(f'Stacking Model Prediction: {stacking_pred[0]}')
+    st.write(f'Linear Model Prediction: {linear_pred}')
+    st.write(f'Ridge Model Prediction: {ridge_pred}')
+    st.write(f'MLP Model Prediction: {mlp_pred}')
+    st.write(f'Stacking Model Prediction: {stacking_pred}')
     
