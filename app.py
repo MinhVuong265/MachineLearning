@@ -167,10 +167,11 @@ if st.button('Predict'):
         'G2': G2,
     }
     input_data_scaled = scaler.transform(input_data)
-    linear_pred = model_linear.predict(input_data_scaled)
-    ridge_pred = model_ridge.predict(input_data_scaled)
-    mlp_pred = model_mlp.predict(input_data_scaled)
-    stacking_pred = model_stacking.predict(input_data_scaled)
+    
+    linear_pred = score_prediction(input_data_scaled,linear_model)
+    ridge_pred = score_prediction(input_data_scaled,ridge_model)
+    mlp_pred = score_prediction(input_data_scaled,mpl_ model)
+    stacking_pred = score_prediction(input_data_scaled,stacking_model)
 
         
     # Hiển thị kết quả dự đoán từ các model
