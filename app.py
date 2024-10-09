@@ -166,5 +166,4 @@ def predict():
         'mlp': mlp_pred.round(2),
         'stacking': stacking_pred.round(2),
     })
-if __name__ == '__main__':
-    app.run(debug=True)
+
