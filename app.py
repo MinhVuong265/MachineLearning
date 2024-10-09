@@ -166,20 +166,17 @@ if st.button('Predict'):
         'G1': G1,
         'G2': G2,
     }
+    input_data_scaled = scaler.transform(input_data)
+    linear_pred = model_linear.predict(input_data_scaled)
+    ridge_pred = model_ridge.predict(input_data_scaled)
+    mlp_pred = model_mlp.predict(input_data_scaled)
+    stacking_pred = model_stacking.predict(input_data_scaled)
 
-    # Gửi request POST tới API Flask của bạn
-    response = requests.post('http://127.0.0.1:5000/predict', json=input_data)
-
-    # Nhận kết quả dự đoán từ server
-    if response.status_code == 200:
-        result = response.json()
         
-        # Hiển thị kết quả dự đoán từ các model
-        st.subheader('Prediction Results:')
-        st.write('Linear Model Prediction:', result['linear'])
-        st.write('Ridge Model Prediction:', result['ridge'])
-        st.write('MLP Model Prediction:', result['mlp'])
-        st.write('Stacking Model Prediction:', result['stacking'])
-    else:
-        st.error('Error fetching prediction from the server.')
-
+    # Hiển thị kết quả dự đoán từ các model
+    st.subheader('Prediction Results:')
+    st.write(f'Linear Model Prediction: {linear_pred[0]}')
+    st.write(f'Ridge Model Prediction: {ridge_pred[0]}')
+    st.write(f'MLP Model Prediction: {mlp_pred[0]}')
+    st.write(f'Stacking Model Prediction: {stacking_pred[0]}'))
+    
