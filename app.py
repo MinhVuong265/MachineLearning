@@ -130,29 +130,34 @@ import requests
 st.title('Prediction Using ML Models')
 
 # Tạo form để nhập dữ liệu
-school = st.selectbox('School:', ['GP (Gabriel Pereira)', 'MS (Mousinho da Silveira)'])
-school = 1 if school == 'GP (Gabriel Pereira)' else 0
+with st.form(key='my_form'):
+    # Nhập dữ liệu
+    school = st.selectbox('School:', ['GP (Gabriel Pereira)', 'MS (Mousinho da Silveira)'])
+    school = 1 if school == 'GP (Gabriel Pereira)' else 0
 
-gender = st.selectbox('Gender:', ['Male', 'Female'])
-gender = 1 if gender == 'Male' else 0
+    gender = st.selectbox('Gender:', ['Male', 'Female'])
+    gender = 1 if gender == 'Male' else 0
 
-traveltime = st.number_input('Travel Time (1-4 hours):', min_value=1, max_value=4, step=1)
+    traveltime = st.number_input('Travel Time (1-4 hours):', min_value=1, max_value=4, step=1)
 
-schoolsup = st.selectbox('School Support:', ['Yes', 'No'])
-schoolsup = 1 if schoolsup == 'Yes' else 0
+    schoolsup = st.selectbox('School Support:', ['Yes', 'No'])
+    schoolsup = 1 if schoolsup == 'Yes' else 0
 
-famsup = st.selectbox('Family Support:', ['Yes', 'No'])
-famsup = 1 if famsup == 'Yes' else 0
+    famsup = st.selectbox('Family Support:', ['Yes', 'No'])
+    famsup = 1 if famsup == 'Yes' else 0
 
-famrel = st.number_input('Family Relations (1-5):', min_value=1, max_value=5, step=1)
-goout = st.number_input('Going Out (1-5):', min_value=1, max_value=5, step=1)
-health = st.number_input('Health (1-5):', min_value=1, max_value=5, step=1)
-absences = st.number_input('Absences (0-93):', min_value=0, max_value=93, step=1)
-G1 = st.number_input('G1 (0-20):', min_value=0, max_value=20, step=1)
-G2 = st.number_input('G2 (0-20):', min_value=0, max_value=20, step=1)
+    famrel = st.number_input('Family Relations (1-5):', min_value=1, max_value=5, step=1)
+    goout = st.number_input('Going Out (1-5):', min_value=1, max_value=5, step=1)
+    health = st.number_input('Health (1-5):', min_value=1, max_value=5, step=1)
+    absences = st.number_input('Absences (0-93):', min_value=0, max_value=93, step=1)
+    G1 = st.number_input('G1 (0-20):', min_value=0, max_value=20, step=1)
+    G2 = st.number_input('G2 (0-20):', min_value=0, max_value=20, step=1)
+
+    # Nút submit
+    submit_button = st.form_submit_button(label='Predict')
 
 # Khi người dùng nhấn nút "Predict"
-if st.button('Predict'):
+if submit_button:
     # Tạo một đối tượng chứa các dữ liệu từ form
     input_data = {
         'school': school,
@@ -167,6 +172,7 @@ if st.button('Predict'):
         'G1': G1,
         'G2': G2,
     }
+
     
     
     linear_pred = score_prediction(input_data,linear_model)
