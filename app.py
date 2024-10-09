@@ -178,5 +178,5 @@ if st.button('Predict'):
     st.write(f'Linear Model Prediction: {linear_pred[0]}')
     st.write(f'Ridge Model Prediction: {ridge_pred[0]}')
     st.write(f'MLP Model Prediction: {mlp_pred[0]}')
-    st.write(f'Stacking Model Prediction: {stacking_pred[0]}'))
+    st.write(f'Stacking Model Prediction: {stacking_pred[0]}')
     
