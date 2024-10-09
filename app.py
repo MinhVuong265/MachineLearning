@@ -16,10 +16,10 @@ from sklearn.ensemble import StackingRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
-from flask import Flask, render_template, request, jsonify
 
 
-app = Flask(__name__)
+
+
 
 data = pd.read_csv('score-mat.csv', sep=',')
 le = LabelEncoder()
@@ -166,4 +166,64 @@ def predict():
         'mlp': mlp_pred.round(2),
         'stacking': stacking_pred.round(2),
     })
+import streamlit as st
+import requests
+
+# Tiêu đề ứng dụng
+st.title('Prediction Using ML Models')
+
+# Tạo form để nhập dữ liệu
+school = st.selectbox('School:', ['GP (Gabriel Pereira)', 'MS (Mousinho da Silveira)'])
+school = 1 if school == 'GP (Gabriel Pereira)' else 0
+
+gender = st.selectbox('Gender:', ['Male', 'Female'])
+gender = 1 if gender == 'Male' else 0
+
+traveltime = st.number_input('Travel Time (1-4 hours):', min_value=1, max_value=4, step=1)
+
+schoolsup = st.selectbox('School Support:', ['Yes', 'No'])
+schoolsup = 1 if schoolsup == 'Yes' else 0
+
+famsup = st.selectbox('Family Support:', ['Yes', 'No'])
+famsup = 1 if famsup == 'Yes' else 0
+
+famrel = st.number_input('Family Relations (1-5):', min_value=1, max_value=5, step=1)
+goout = st.number_input('Going Out (1-5):', min_value=1, max_value=5, step=1)
+health = st.number_input('Health (1-5):', min_value=1, max_value=5, step=1)
+absences = st.number_input('Absences (0-93):', min_value=0, max_value=93, step=1)
+G1 = st.number_input('G1 (0-20):', min_value=0, max_value=20, step=1)
+G2 = st.number_input('G2 (0-20):', min_value=0, max_value=20, step=1)
+
+# Khi người dùng nhấn nút "Predict"
+if st.button('Predict'):
+    # Tạo một đối tượng chứa các dữ liệu từ form
+    input_data = {
+        'school': school,
+        'gender': gender,
+        'traveltime': traveltime,
+        'schoolsup': schoolsup,
+        'famsup': famsup,
+        'famrel': famrel,
+        'goout': goout,
+        'health': health,
+        'absences': absences,
+        'G1': G1,
+        'G2': G2,
+    }
+
+    # Gửi request POST tới API Flask của bạn
+    response = requests.post('http://127.0.0.1:5000/predict', json=input_data)
+
+    # Nhận kết quả dự đoán từ server
+    if response.status_code == 200:
+        result = response.json()
+        
+        # Hiển thị kết quả dự đoán từ các model
+        st.subheader('Prediction Results:')
+        st.write('Linear Model Prediction:', result['linear'])
+        st.write('Ridge Model Prediction:', result['ridge'])
+        st.write('MLP Model Prediction:', result['mlp'])
+        st.write('Stacking Model Prediction:', result['stacking'])
+    else:
+        st.error('Error fetching prediction from the server.')
 
