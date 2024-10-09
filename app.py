@@ -153,6 +153,9 @@ with st.form(key='my_form'):
     G1 = st.number_input('G1 (0-20):', min_value=0, max_value=20, step=1)
     G2 = st.number_input('G2 (0-20):', min_value=0, max_value=20, step=1)
 
+    st.text("Đoạn code được viết cho mỗi lần predict sẽ chạy lại toàn bộ từ bước huấn luyện mô hình đến bước dự đoán nên sẽ hơi lâu để hiển thị kết quả")
+    st.text("Nếu bạn muốn dùng trang này để làm việc quan trọng và muốn cải thiện thời gian chạy, hãy liên hệ với: https://www.facebook.com/minhvuong265 để cải thiện trang này")
+    st.text("Cảm ơn bạn đã ghé thăm!")
     # Nút submit
     submit_button = st.form_submit_button(label='Predict')
 
