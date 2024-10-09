@@ -170,7 +170,7 @@ if st.button('Predict'):
     
     linear_pred = score_prediction(input_data,linear_model)
     ridge_pred = score_prediction(input_data,ridge_model)
-    mlp_pred = score_prediction(input_data,mlp_ model)
+    mlp_pred = score_prediction(input_data,mlp_model)
     stacking_pred = score_prediction(input_data,stacking_model)
 
         
