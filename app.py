@@ -100,7 +100,8 @@ stacking_model.fit(X_train_scaled, y_train)
 
 
 def score_prediction(input_data, model):
-    input_data_scaled = scaler.transform(input_data)
+    input_df = pd.DataFrame([input_data])
+    input_data_scaled = scaler.transform(input_df)
     prediction = model.predict(input_data_scaled)[0]
     return prediction
 
