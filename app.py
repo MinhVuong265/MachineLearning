@@ -121,51 +121,7 @@ print(f"ridge: {evaluate_model(ridge_model)}")
 print(f"mlp: {evaluate_model(mlp_model)}")
 print(f"stack: {evaluate_model(stacking_model)}")
 
-models = {
-    'Linear': linear_model,
-    'Ridge': ridge_model,
-    'MLP': mlp_model,
-    'Stacking': stacking_model,
-    
-}
-@app.route('/')
-def index():
-    return render_template('index.html')
-@app.route('/predict', methods=['POST'])
-def predict():
-    # Lấy dữ liệu từ form
-    input_data = request.json
-    school = float(input_data['school'])
-    gender = float(input_data['gender'])
-    traveltime = float(input_data['traveltime'])
-    schoolsup = float(input_data['schoolsup'])
-    famsup = float(input_data['famsup'])
-    famrel = float(input_data['famrel'])
-    goout = float(input_data['goout'])
-    health = float(input_data['health'])
-    absences = float(input_data['absences'])
-    G1 = float(input_data['G1'])
-    G2 = float(input_data['G2'])
 
-    # Tạo một numpy array từ dữ liệu nhập
-    input_features = np.array([[school,gender, traveltime, schoolsup, famsup, famrel, goout, health, absences, G1, G2]])
-
-    # Chuẩn hóa dữ liệu đầu vào
-    input_scaled = scaler.transform(input_features)
-
-    # Dự đoán với các mô hình
-    linear_pred = linear_model.predict(input_scaled)[0]
-    ridge_pred = ridge_model.predict(input_scaled)[0]
-    mlp_pred = mlp_model.predict(input_scaled)[0]
-    stacking_pred = stacking_model.predict(input_scaled)[0]
-
-    # Trả kết quả về client
-    return jsonify({
-        'linear': linear_pred.round(2),
-        'ridge': ridge_pred.round(2),
-        'mlp': mlp_pred.round(2),
-        'stacking': stacking_pred.round(2),
-    })
 import streamlit as st
 import requests
 
