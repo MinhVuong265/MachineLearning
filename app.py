@@ -16,178 +16,91 @@ from sklearn.ensemble import StackingRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
+from flask import Flask, render_template, request, jsonify
 
 
-
-
-
-data = pd.read_csv('score-mat.csv', sep=',')
-le = LabelEncoder()
-for column in data.columns:
-    data[column] = le.fit_transform(data[column])
-    label_ecoders = le
-
-
-target = 'G3'
-features = [col for col in data.columns if col!=target]
-X = data[features]
-y = data['G3']
+app = Flask(__name__)
 
 scaler = StandardScaler()
+data = joblib.load('data.pkl')
 
-linear_model = LinearRegression()
-ridge_model = Ridge(alpha=1.0)
-mlp_model = MLPRegressor(hidden_layer_sizes=(128,128),activation='relu', max_iter=1500, early_stopping=True, random_state=42)
+scaler.fit_transform(data)
 
-def iterative_feature_elimination(X, y, threshold=0):
-    prev_column_count = 0  
-    current_column_count = X.shape[1]  
+linear_model = joblib.load('linear_model.pkl')
+ridge_model = joblib.load('ridge_model.pkl')
+mlp_model = joblib.load('mlp_model.pkl')
+stacking_model = joblib.load('stacking_model.pkl')
 
-    while current_column_count != prev_column_count:
-        prev_column_count = current_column_count
-
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-        X_train_scaled = scaler.fit_transform(X_train)
-        X_test_scaled = scaler.transform(X_test)
-
-        ridge_model.fit(X_train_scaled, y_train)
-
-        coefficients = ridge_model.coef_
-
-        # features = X_filtered.columns
-        # indices = np.argsort(coefficients)
-
-        # plt.figure(figsize=(10, 6))
-        # plt.title('Feature Importance (Linear Regression Coefficients)')
-        # plt.barh(range(len(indices)), coefficients[indices], color='b', align='center')
-        # plt.yticks(range(len(indices)), [features[i] for i in indices])
-        # plt.xlabel('Coefficient Value')
-        # plt.show()
-
-        importance_df = pd.DataFrame({'Feature': X.columns, 'Importance': coefficients})
-
-        important_features = importance_df[importance_df['Importance'] >= threshold]['Feature'].tolist()
-
-        X = X[important_features]
-
-        current_column_count = len(important_features)
-
-        # print(f"Số lượng cột sau khi lặp: {current_column_count}")
-
-    return X, coefficients
-
-X_filtered ,coef = iterative_feature_elimination(X, y)
-
-
-X_train, X_test, y_train, y_test = train_test_split(X_filtered, y, test_size=0.2, random_state=42)
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
-
-
-#train model
-linear_model.fit(X_train_scaled, y_train)
-ridge_model.fit(X_train_scaled, y_train)
-mlp_model.fit(X_train_scaled, y_train)
-
-#stacking
-estimators = [
-    ('linear', linear_model),
-    ('mlp', mlp_model)
-]
-stacking_model = StackingRegressor(estimators=estimators, final_estimator=Ridge(alpha=1.0))
-stacking_model.fit(X_train_scaled, y_train)
 
 
 def score_prediction(input_data, model):
-    input_df = pd.DataFrame([input_data])
-    input_data_scaled = scaler.transform(input_df)
+    input_data_scaled = scaler.transform(input_data)
     prediction = model.predict(input_data_scaled)[0]
     return prediction
 
 def nse(observed, predicted):
     return 1 - (np.sum((observed - predicted)**2) / np.sum((observed - np.mean(predicted))**2))
 
-def evaluate_model(model):
-    y_pred = model.predict(X_test_scaled)
-    mse = mean_squared_error(y_test, y_pred)
-    r2 = r2_score(y_test, y_pred)
-    mae = mean_absolute_error(y_test, y_pred)
-    nses = nse(y_test, y_pred) 
-    return mse, r2, mae, nses
+# def evaluate_model(model):
+#     y_pred = model.predict(X_test_scaled)
+#     mse = mean_squared_error(y_test, y_pred)
+#     r2 = r2_score(y_test, y_pred)
+#     mae = mean_absolute_error(y_test, y_pred)
+#     nses = nse(y_test, y_pred) 
+#     return mse, r2, mae, nses
 
-print("\t\tmse\t\tr2\t\tmae\t\tnse")    
-print(f"linear: {evaluate_model(linear_model)}")
-print(f"ridge: {evaluate_model(ridge_model)}")
-print(f"mlp: {evaluate_model(mlp_model)}")
-print(f"stack: {evaluate_model(stacking_model)}")
+# print("\t\tmse\t\tr2\t\tmae\t\tnse")    
+# print(f"linear: {evaluate_model(linear_model)}")
+# print(f"ridge: {evaluate_model(ridge_model)}")
+# print(f"mlp: {evaluate_model(mlp_model)}")
+# print(f"stack: {evaluate_model(stacking_model)}")
 
 
-import streamlit as st
-import requests
-
-# Tiêu đề ứng dụng
-st.title('Prediction Using ML Models')
-
-# Tạo form để nhập dữ liệu
-with st.form(key='my_form'):
-    # Nhập dữ liệu
-    school = st.selectbox('School:', ['GP (Gabriel Pereira)', 'MS (Mousinho da Silveira)'])
-    school = 1 if school == 'GP (Gabriel Pereira)' else 0
-
-    gender = st.selectbox('Gender:', ['Male', 'Female'])
-    gender = 1 if gender == 'Male' else 0
-
-    traveltime = st.number_input('Travel Time (1-4 hours):', min_value=1, max_value=4, step=1)
-
-    schoolsup = st.selectbox('School Support:', ['Yes', 'No'])
-    schoolsup = 1 if schoolsup == 'Yes' else 0
-
-    famsup = st.selectbox('Family Support:', ['Yes', 'No'])
-    famsup = 1 if famsup == 'Yes' else 0
-
-    famrel = st.number_input('Family Relations (1-5):', min_value=1, max_value=5, step=1)
-    goout = st.number_input('Going Out (1-5):', min_value=1, max_value=5, step=1)
-    health = st.number_input('Health (1-5):', min_value=1, max_value=5, step=1)
-    absences = st.number_input('Absences (0-93):', min_value=0, max_value=93, step=1)
-    G1 = st.number_input('G1 (0-20):', min_value=0, max_value=20, step=1)
-    G2 = st.number_input('G2 (0-20):', min_value=0, max_value=20, step=1)
-
-    st.text("Đoạn code được viết cho mỗi lần predict sẽ chạy lại toàn bộ từ bước huấn luyện mô hình đến bước dự đoán nên sẽ hơi lâu để hiển thị kết quả")
-    st.text("Nếu bạn muốn dùng trang này để làm việc quan trọng và muốn cải thiện thời gian chạy, hãy liên hệ với: https://www.facebook.com/minhvuong265 để cải thiện trang này")
-    st.text("Cảm ơn bạn đã ghé thăm!")
-    # Nút submit
-    submit_button = st.form_submit_button(label='Predict')
-
-# Khi người dùng nhấn nút "Predict"
-if submit_button:
-    # Tạo một đối tượng chứa các dữ liệu từ form
-    input_data = {
-        'school': school,
-        'gender': gender,
-        'traveltime': traveltime,
-        'schoolsup': schoolsup,
-        'famsup': famsup,
-        'famrel': famrel,
-        'goout': goout,
-        'health': health,
-        'absences': absences,
-        'G1': G1,
-        'G2': G2,
-    }
-
+models = {
+    'Linear': linear_model,
+    'Ridge': ridge_model,
+    'MLP': mlp_model,
+    'Stacking': stacking_model,
     
-    
-    linear_pred = score_prediction(input_data,linear_model)
-    ridge_pred = score_prediction(input_data,ridge_model)
-    mlp_pred = score_prediction(input_data,mlp_model)
-    stacking_pred = score_prediction(input_data,stacking_model)
+}
+@app.route('/')
+def index():
+    return render_template('index.html')
+@app.route('/predict', methods=['POST'])
+def predict():
+    # Lấy dữ liệu từ form
+    input_data = request.json
+    school = float(input_data['school'])
+    gender = float(input_data['gender'])
+    traveltime = float(input_data['traveltime'])
+    schoolsup = float(input_data['schoolsup'])
+    famsup = float(input_data['famsup'])
+    famrel = float(input_data['famrel'])
+    goout = float(input_data['goout'])
+    health = float(input_data['health'])
+    absences = float(input_data['absences'])
+    G1 = float(input_data['G1'])
+    G2 = float(input_data['G2'])
 
-        
-    # Hiển thị kết quả dự đoán từ các model
-    st.subheader('Prediction Results:')
-    st.write(f'Linear Model Prediction: {linear_pred}')
-    st.write(f'Ridge Model Prediction: {ridge_pred}')
-    st.write(f'MLP Model Prediction: {mlp_pred}')
-    st.write(f'Stacking Model Prediction: {stacking_pred}')
-    
+    # Tạo một numpy array từ dữ liệu nhập
+    input_features = np.array([[school,gender, traveltime, schoolsup, famsup, famrel, goout, health, absences, G1, G2]])
+
+    # Chuẩn hóa dữ liệu đầu vào
+    input_scaled = scaler.transform(input_features)
+
+    # Dự đoán với các mô hình
+    linear_pred = linear_model.predict(input_scaled)[0]
+    ridge_pred = ridge_model.predict(input_scaled)[0]
+    mlp_pred = mlp_model.predict(input_scaled)[0]
+    stacking_pred = stacking_model.predict(input_scaled)[0]
+
+    # Trả kết quả về client
+    return jsonify({
+        'linear': linear_pred.round(2),
+        'ridge': ridge_pred.round(2),
+        'mlp': mlp_pred.round(2),
+        'stacking': stacking_pred.round(2),
+    })
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 4000)) 
+    app.run(debug=True, host='0.0.0.0', port=port)
