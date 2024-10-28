@@ -16,10 +16,8 @@ from sklearn.ensemble import StackingRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
-from flask import Flask, render_template, request, jsonify
+import streamlit as st
 
-
-app = Flask(__name__)
 
 scaler = StandardScaler()
 data = joblib.load('data.pkl')
@@ -63,44 +61,62 @@ models = {
     'Stacking': stacking_model,
     
 }
-@app.route('/')
-def index():
-    return render_template('index.html')
-@app.route('/predict', methods=['POST'])
-def predict():
-    # Lấy dữ liệu từ form
-    input_data = request.json
-    school = float(input_data['school'])
-    gender = float(input_data['gender'])
-    traveltime = float(input_data['traveltime'])
-    schoolsup = float(input_data['schoolsup'])
-    famsup = float(input_data['famsup'])
-    famrel = float(input_data['famrel'])
-    goout = float(input_data['goout'])
-    health = float(input_data['health'])
-    absences = float(input_data['absences'])
-    G1 = float(input_data['G1'])
-    G2 = float(input_data['G2'])
+# Tiêu đề ứng dụng
+st.title('Prediction Using ML Models')
 
-    # Tạo một numpy array từ dữ liệu nhập
-    input_features = np.array([[school,gender, traveltime, schoolsup, famsup, famrel, goout, health, absences, G1, G2]])
+# Tạo form để nhập dữ liệu
+with st.form(key='my_form'):
+    # Nhập dữ liệu
+    school = st.selectbox('School:', ['GP (Gabriel Pereira)', 'MS (Mousinho da Silveira)'])
+    school = 1 if school == 'GP (Gabriel Pereira)' else 0
 
-    # Chuẩn hóa dữ liệu đầu vào
-    input_scaled = scaler.transform(input_features)
+    gender = st.selectbox('Gender:', ['Male', 'Female'])
+    gender = 1 if gender == 'Male' else 0
 
-    # Dự đoán với các mô hình
-    linear_pred = linear_model.predict(input_scaled)[0]
-    ridge_pred = ridge_model.predict(input_scaled)[0]
-    mlp_pred = mlp_model.predict(input_scaled)[0]
-    stacking_pred = stacking_model.predict(input_scaled)[0]
+    traveltime = st.number_input('Travel Time (1-4 hours):', min_value=1, max_value=4, step=1)
 
-    # Trả kết quả về client
-    return jsonify({
-        'linear': linear_pred.round(2),
-        'ridge': ridge_pred.round(2),
-        'mlp': mlp_pred.round(2),
-        'stacking': stacking_pred.round(2),
-    })
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 4000)) 
-    app.run(debug=True, host='0.0.0.0', port=port)
+    schoolsup = st.selectbox('School Support:', ['Yes', 'No'])
+    schoolsup = 1 if schoolsup == 'Yes' else 0
+
+    famsup = st.selectbox('Family Support:', ['Yes', 'No'])
+    famsup = 1 if famsup == 'Yes' else 0
+
+    famrel = st.number_input('Family Relations (1-5):', min_value=1, max_value=5, step=1)
+    goout = st.number_input('Going Out (1-5):', min_value=1, max_value=5, step=1)
+    health = st.number_input('Health (1-5):', min_value=1, max_value=5, step=1)
+    absences = st.number_input('Absences (0-93):', min_value=0, max_value=93, step=1)
+    G1 = st.number_input('G1 (0-20):', min_value=0, max_value=20, step=1)
+    G2 = st.number_input('G2 (0-20):', min_value=0, max_value=20, step=1)
+
+    # Nút submit
+    submit_button = st.form_submit_button(label='Predict')
+
+# Khi người dùng nhấn nút "Predict"
+if submit_button:
+    # Tạo một đối tượng chứa các dữ liệu từ form
+    input_data = {
+        'school': school,
+        'gender': gender,
+        'traveltime': traveltime,
+        'schoolsup': schoolsup,
+        'famsup': famsup,
+        'famrel': famrel,
+        'goout': goout,
+        'health': health,
+        'absences': absences,
+        'G1': G1,
+        'G2': G2,
+    }
+
+    # Dự đoán
+    linear_pred = score_prediction(input_data, linear_model)
+    ridge_pred = score_prediction(input_data, ridge_model)
+    mlp_pred = score_prediction(input_data, mlp_model)
+    stacking_pred = score_prediction(input_data, stacking_model)
+
+    # Hiển thị kết quả dự đoán từ các model
+    st.subheader('Prediction Results:')
+    st.write(f'Linear Model Prediction: {linear_pred}')
+    st.write(f'Ridge Model Prediction: {ridge_pred}')
+    st.write(f'MLP Model Prediction: {mlp_pred}')
+    st.write(f'Stacking Model Prediction: {stacking_pred}')
