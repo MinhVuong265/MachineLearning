@@ -94,7 +94,7 @@ with st.form(key='my_form'):
 # Khi người dùng nhấn nút "Predict"
 if submit_button:
     # Tạo một đối tượng chứa các dữ liệu từ form
-    input_data = {
+    input_data = np.array({
         'school': school,
         'gender': gender,
         'traveltime': traveltime,
@@ -106,7 +106,7 @@ if submit_button:
         'absences': absences,
         'G1': G1,
         'G2': G2,
-    }
+    })
 
     # Dự đoán
     linear_pred = score_prediction(input_data, linear_model)
