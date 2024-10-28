@@ -65,6 +65,8 @@ X_train, X_test, y_train, y_test = train_test_split(X_filtered, y, test_size=0.2
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
+joblib.dump(scaler, 'scaler.pkl')
+
 #train model
 linear_model.fit(X_train_scaled, y_train)
 ridge_model.fit(X_train_scaled, y_train)

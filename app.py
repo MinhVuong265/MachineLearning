@@ -19,10 +19,7 @@ from sklearn.model_selection import GridSearchCV
 import streamlit as st
 
 
-scaler = StandardScaler()
-data = joblib.load('data.pkl')
-
-scaler.fit_transform(data)
+scaler = joblib.load('scaler.pkl')
 
 linear_model = joblib.load('linear_model.pkl')
 ridge_model = joblib.load('ridge_model.pkl')
@@ -108,7 +105,7 @@ if submit_button:
         'G2': G2,
     }
 
-    input_data = np.array(input)
+    input_data = np.array(list(input.values())).reshape(1, -1)
 
     # Dự đoán
     linear_pred = score_prediction(input_data, linear_model)
